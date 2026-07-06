@@ -116,15 +116,15 @@
   function buildBody() {
     var v = function (id) {
       var el = document.getElementById(id);
-      return el.value.trim() ? el.value.trim() : "(no response)";
+      return (el && el.value.trim()) ? el.value.trim() : "(no response)";
     };
     return (
-      "1) Gather Your Influences: Who has had a lasting impact?\n" +
+      "1) Gather Your Influences — Your three values:\n" +
       v("q1") + "\n\n" +
-      "2) Sort Your Values: What qualities do you see in yourself?\n" +
+      "2) Sort Your Values — The value at the center:\n" +
       v("q2") + "\n\n" +
-      "3) Spot Your Signature: What is uniquely yours?\n" +
-      v("q3") + "\n\n" +
+      "3) Spot Your Signature — Your Purpose Style Statement:\n" +
+      v("q3") + "\n"
     );
   }
 
