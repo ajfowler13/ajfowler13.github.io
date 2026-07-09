@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hard Conversations — Ethics &amp; Compliance Rehearsal</title>
+<!--
+  Self-contained branching simulation. No backend, no external calls, no tracking, no storage.
+  To embed on Wix: add an "Embed HTML / iframe" element and either paste this file's contents
+  or point it at the hosted file's URL. Works offline in any modern browser.
+-->
+<style>
+:root{
+  color-scheme: light;
+  --bg:#faf5f5; --panel:#ffffff; --ink:#301b1b; --muted:#755c5c;
+  --line:#eee3e3; --brand:#663636; --brand-d:#381212; --accent:#760f4b;
+  --good:#044427; --warn:#ac7522; --bad:#991d1d;
+  --chip:#f8eeee; --learner:#8b1f1f; --other:#f5eeee;
+  --shadow:0 1px 3px rgba(53, 15, 15, 0.07),0 8px 24px rgba(20,40,70,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+.wrap{max-width:840px;margin:0 auto;padding:22px 18px 72px}
+h1{font-size:23px;margin:0 0 4px;letter-spacing:-.01em}
+h2{font-size:17px;margin:20px 0 8px}
+h3{font-size:12.5px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+p{margin:0 0 10px}
+.sub{color:var(--muted);font-size:13.5px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.badge{display:inline-block;background:var(--chip);color:var(--brand-d);font-size:12px;font-weight:600;padding:3px 11px;border-radius:999px;margin-bottom:10px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid transparent;padding:10px 16px;font-weight:600;transition:.12s}
+.btn{background:var(--brand);color:#fff}.btn:hover{background:var(--brand-d)}
+.btn.ghost{background:#fff;color:var(--brand-d);border-color:var(--line)}.btn.ghost:hover{border-color:var(--brand)}
+.btn.wide{width:100%}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.hide{display:none!important}
+a{color:var(--brand)}
+.foot{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+/* home grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:8px}
+.scard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;cursor:pointer;transition:.14s}
+.scard:hover{transform:translateY(-2px);border-color:var(--brand);box-shadow:0 8px 26px rgba(20,40,70,.12)}
+.scard .n{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.04em}
+.scard .t{font-size:16px;font-weight:700;margin:6px 0 6px;letter-spacing:-.01em}
+.scard .d{font-size:13px;color:var(--muted);flex:1}
+.scard .srcs{margin-top:10px;font-size:11px;color:var(--brand-d);background:var(--chip);border-radius:8px;padding:6px 8px;line-height:1.4}
+
+/* play */
+#chat{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
+.msg{max-width:84%;padding:10px 13px;border-radius:14px;font-size:14.5px;white-space:pre-wrap}
+.msg.other{background:var(--other);border-bottom-left-radius:4px;align-self:flex-start}
+.msg.me{background:var(--learner);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.msg .who{display:block;font-size:11px;font-weight:700;opacity:.75;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em}
+.stage{color:var(--muted);font-style:italic;font-size:12.5px;align-self:center;text-align:center;max-width:90%}
+.prog{font-size:12.5px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.prog .bar{flex:1;height:6px;background:#e9ecf1;border-radius:4px;overflow:hidden}
+.prog .fill{height:100%;width:0;background:var(--brand);transition:.3s}
+.choices{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+.choice{text-align:left;background:#fff;border:1px solid var(--line);color:var(--ink);font-weight:500;padding:12px 14px;border-radius:11px;line-height:1.4}
+.choice:hover{border-color:var(--brand);background:#f7fafc}
+.choice .lead{font-weight:700;color:var(--brand-d);margin-right:6px}
+
+/* feedback */
+.big-score{font-size:34px;font-weight:800;letter-spacing:-.02em}
+.big-score small{font-size:16px;font-weight:600;color:var(--muted)}
+.overall{font-size:16px;font-weight:600}
+.pill{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;min-width:78px;text-align:center;display:inline-block}
+.p2{background:#e4f4ec;color:var(--good)}.p1{background:#fdf2df;color:var(--warn)}.p0{background:#fbe7e7;color:var(--bad)}
+.dim{padding:14px 0;border-top:1px solid var(--line)}
+.dim .hd{display:flex;align-items:center;gap:12px}
+.dim .nm{font-weight:600;flex:1}
+.dim .verdict{margin:8px 0 0}
+.evidence{font-style:italic;color:var(--muted);border-left:3px solid var(--line);padding-left:10px;margin:8px 0;font-size:13.5px}
+.cite{background:#f3f6f9;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:13px}
+.cite .src{font-weight:700;color:var(--brand-d);display:block;margin-bottom:2px}
+.watchout{background:#fff8ec;border:1px solid #f0e2c4;border-radius:10px;padding:12px 14px;font-size:13.5px}
+.model{border-left:3px solid var(--brand);color:var(--ink);font-style:italic;padding-left:12px;margin:6px 0}
+ul.tight{margin:6px 0 4px;padding-left:20px}ul.tight li{margin:5px 0}
+details{margin-top:6px}summary{cursor:pointer;font-weight:600;color:var(--brand-d)}
+.tline{margin:6px 0;font-size:13.5px}.tline b{color:var(--brand-d)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ LANDING ============ -->
+<section id="home">
+  <div class="badge">Performance-support tool · Instructional design portfolio</div>
+  <h1>Hard Conversations</h1>
+  <p class="sub" style="max-width:640px">A safe place to rehearse the ethics &amp; compliance conversations most people never get to practice until they're in one for real. Pick a scenario, work through it, and get feedback measured against real law and standards — not opinion.</p>
+  <div class="card" style="margin-top:14px">
+    <h3>How it works</h3>
+    <p style="margin:0">Each scenario is a short, branching conversation. The other person pushes back and adapts to your choices. At every decision you choose what to actually say. Afterward you're scored across four skills, each tied to a cited authority (FCPA, UK Bribery Act, Sarbanes-Oxley, Title VII, GDPR, ISO 37001, and more), with a model answer to compare against.</p>
+  </div>
+  <button class="btn" style="margin-top:4px" onclick="show('scenarios')">View the scenarios →</button>
+  <p class="foot">Nothing is tracked, stored, or sent anywhere — everything runs in your browser. Scenarios are fictional; feedback references real, publicly available standards and is for training, not legal advice.</p>
+</section>
+
+<!-- ============ SCENARIOS ============ -->
+<section id="scenarios" class="hide">
+  <div class="badge">Choose a scenario</div>
+  <h1>Scenarios</h1>
+  <p class="sub" style="max-width:640px">Pick one to begin — each takes just a few minutes.</p>
+  <div class="grid" id="grid" style="margin-top:8px"></div>
+  <button class="btn ghost" style="margin-top:16px" onclick="show('home')">← Back to start</button>
+</section>
+
+<!-- ============ INTRO ============ -->
+<section id="intro" class="hide">
+  <div class="badge" id="introBadge"></div>
+  <h1 id="introTitle"></h1>
+  <div class="card">
+    <h3>Your role</h3><p id="introRole"></p>
+    <h3 style="margin-top:14px">The situation</h3><p id="introSit"></p>
+    <h3 style="margin-top:14px">You're practising</h3>
+    <ul class="tight" id="introDims"></ul>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="beginPlay()">Begin the conversation →</button>
+    <button class="btn ghost" onclick="goHome()">← All scenarios</button>
+  </div>
+</section>
+
+<!-- ============ PLAY ============ -->
+<section id="play" class="hide">
+  <div class="prog"><span id="progLabel">Decision 1</span><div class="bar"><div class="fill" id="progFill"></div></div></div>
+  <div class="card">
+    <div id="chat"></div>
+    <div id="choices" class="choices"></div>
+  </div>
+  <button class="btn ghost" onclick="goHome()">Quit to menu</button>
+</section>
+
+<!-- ============ FEEDBACK ============ -->
+<section id="feedback" class="hide">
+  <div class="badge">Debrief</div>
+  <h1 id="fbTitle">Your feedback</h1>
+  <div id="fb"></div>
+  <div class="row" style="margin-top:16px">
+    <button class="btn" onclick="restartScenario()">Try this again</button>
+    <button class="btn ghost" onclick="goHome()">← All scenarios</button>
+    <button class="btn ghost" onclick="toggleTranscript()">Review transcript</button>
+  </div>
+  <div id="tbox" class="card hide" style="margin-top:12px"></div>
+</section>
+
+</div>
+
+<script>
+/* ============================================================
+   DATA — 8 scenarios. Each dims[i] is tested by turns[i].
+   Citation text is fixed here (validated sources), never generated.
+   ============================================================ */
+const SCENARIOS = [
+{
+  id:"bribe", n:"Scenario 1", title:"Declining a Bribe",
+  tag:"Anti-bribery", srcs:"FCPA · UK Bribery Act 2010 · ISO 37001",
+  role:"You are the regional operations lead for Meridian Components, a manufacturer expanding into the port city of Valdoro.",
+  sit:"A shipment your factory needs is stuck in customs, costing money every day. Over coffee, a local “facilitation consultant,” Marco Devlin, offers to make the problem disappear today for a $4,000 cash “processing fee” he'll “share with the right people.”",
+  who:"Marco Devlin",
+  dims:[
+    {name:"Clarity of refusal", guide:"refuse without hedging — no “let me think,” no door left open",
+     cite:{src:"DOJ & SEC, A Resource Guide to the U.S. FCPA, 2nd ed. (2020)", text:"A bribe covers giving “anything of value” to improperly influence an official. Ambiguous or non-committal responses create legal and evidentiary risk; a clear, contemporaneous refusal is the safest record."}},
+    {name:"Rejecting the “it's just a fee” framing", guide:"name it as a bribe rather than accept the “fee/consulting” label",
+     cite:{src:"UK Bribery Act 2010, ss.1 & 6; FCPA facilitation exception, 15 U.S.C. §78dd-1(b)", text:"A cash payment funnelled to officials to release goods is a bribe. The FCPA's narrow facilitation exception does NOT cover payments to gain business advantage, and the UK Bribery Act has no facilitation exception at all — its s.7 corporate offence reaches any firm doing business in the UK."}},
+    {name:"Offering a compliant path", guide:"propose a legitimate route so refusing doesn't strand the shipment",
+     cite:{src:"ISO 37001:2016 — Anti-Bribery Management Systems (cl. 8.2–8.7)", text:"Certified controls expect authorised channels: official published fees paid against a receipt, licensed customs brokers, and escalation to compliance. A lawful alternative shows you're solving the problem, not just saying no."}},
+    {name:"Escalation & documentation", guide:"commit to document the request and report it to compliance",
+     cite:{src:"ISO 37001:2016 (raising concerns); SOX §806 (18 U.S.C. §1514A)", text:"Bribe solicitations must be reported and documented. Saying “I'll document this and raise it with compliance” converts a private pressure moment into a defensible, on-record decision, and good-faith reporting is legally protected."}}
+  ],
+  turns:[
+    {say:"Your shipment's stuck — bad luck. But I know the right people at customs. Four thousand in cash today, released by tomorrow. Everyone here does it this way. So, we're good?",
+     choices:[
+      {t:"No. I'm not paying that, and Meridian won't either.", q:2, r:"Whoa, so blunt! Relax — it's not a big deal, it's just how things move here."},
+      {t:"I don't think I can... let me check with my head office.", q:1, r:"Check with them, sure. But every day you wait, the meter's running. They'll just tell you to get it done."},
+      {t:"How would it work, exactly? Is it traceable back to us?", q:0, r:"Smart, thinking it through. No trace — I handle it all. Cash, no paper. See, you get it."}
+    ]},
+    {say:"Look, don't overthink it. It's a processing fee. Call it consulting if that helps — I'll even give you an invoice.",
+     choices:[
+      {t:"An invoice doesn't change what it is. Cash to officials to release goods is a bribe.", q:2, r:"“Bribe” is such an ugly word. I prefer “getting things done.” But fine — you're a careful one."},
+      {t:"I'd feel better with an invoice, I guess.", q:1, r:"There, see? Paperwork. Everyone's happy. I'll write it up as logistics consulting."},
+      {t:"Okay, an invoice would make it look legitimate.", q:0, r:"Exactly! On paper it's clean. This is why I like working with professionals."}
+    ]},
+    {say:"So if not my way, what — your parts rot at the dock for a month? Your project's already late.",
+     choices:[
+      {t:"We'll pay the official published fees against a receipt, and bring in a licensed customs broker.", q:2, r:"A broker. Slower, more forms, more money. But legal, sure — if that's how you want to bleed cash."},
+      {t:"Maybe there's a faster official option? I'll look into it.", q:1, r:"“Look into it.” While you do that, I'd have had it done. But okay."},
+      {t:"There's really no other way but yours?", q:0, r:"Now you're getting it. There isn't. So let's stop dancing."}
+    ]},
+    {say:"Alright. Just — let's keep this conversation between us, yes? No need to make it a thing.",
+     choices:[
+      {t:"I can't. I'm going to document your request and report it to our compliance team.", q:2, r:"You're — reporting me? For a coffee chat? ...Fine. Have it your way."},
+      {t:"I won't mention it if you drop it.", q:1, r:"Good man. Discretion. We'll pretend this never happened."},
+      {t:"Sure, this stays between us.", q:0, r:"See, we understand each other after all. My offer stands, whenever you're ready."}
+    ]}
+  ],
+  expert:"“No, Marco. I'm not paying that and neither is Meridian — a cash fee passed to officials to release goods is a bribe, whatever the invoice says. Here's what I can do: pay the official published customs fees against a receipt and bring in a licensed broker to clear it properly. And I have to be straight with you — I'm documenting this request and raising it with compliance. If you offer a legitimate service, put it in writing and I'll route it through procurement.”",
+  diff:[
+    "Names it a bribe and refuses in one breath — no gap to negotiate.",
+    "Never engages on the amount; $4,000 vs $400 is irrelevant when the act is illegal.",
+    "Offers a concrete legal alternative so refusing doesn't doom the shipment.",
+    "States the report/document step plainly, as routine — not as a threat."
+  ],
+  watchout:"Don't confuse enforcement discretion with legality. U.S. FCPA enforcement priorities were narrowed by the DOJ's June 2025 guidance (the Blanche memo), but the statute is unchanged, the SEC's civil authority is untouched, and the UK Bribery Act still bites any firm doing business in the UK. “They're not really prosecuting these” is not a defense."
+},
+{
+  id:"report", n:"Scenario 2", title:"Reporting Misconduct to Your Manager",
+  tag:"Whistleblowing", srcs:"SOX §806 · Dodd-Frank · UK PIDA 1998",
+  role:"You are a financial analyst. You've discovered that a senior colleague, Dana, booked deals before contracts were signed, overstating Q2 revenue.",
+  sit:"You've asked your manager, Priya, for a private meeting to raise it. Priya is capable but visibly worried about what this does to the quarter — and to her.",
+  who:"Priya Okafor",
+  dims:[
+    {name:"Reporting specific facts", guide:"lead with specific, first-hand, verifiable facts — not rumor or a character attack",
+     cite:{src:"Ethics & Compliance Initiative — effective reporting practice", text:"Reports grounded in specific, first-hand, verifiable facts are actionable and defensible; vague accusations or second-hand rumor expose the reporter and let wrongdoing continue. Describe what you observed, when, and the evidence."}},
+    {name:"Insisting on the right channel", guide:"hold the line that it must go to compliance, not an off-the-books “quiet word”",
+     cite:{src:"Sarbanes-Oxley Act §806 (18 U.S.C. §1514A); SEC/Dodd-Frank whistleblower program", text:"Suspected financial misreporting at a public company must reach the proper channel (compliance, audit committee, or regulators). A manager's informal “quiet word” doesn't discharge the obligation and can itself become obstruction."}},
+    {name:"Documenting the report", guide:"keep your own dated record of what you reported and when",
+     cite:{src:"Whistleblower practice under SOX/Dodd-Frank; UK PIDA 1998", text:"Contemporaneous records of what you reported and when are the single best protection against later retaliation or a “he-said-she-said.” Keep dated notes and evidence."}},
+    {name:"Standing on your protection", guide:"know this is a protected disclosure and don't be pressured out of it",
+     cite:{src:"SOX §806 (18 U.S.C. §1514A); Dodd-Frank §922; UK Public Interest Disclosure Act 1998", text:"Good-faith reports of suspected fraud are legally protected; retaliation — including subtle pressure — is unlawful (SOX retaliation claims are filed with OSHA/DOL). You cannot be lawfully talked out of your rights."}}
+  ],
+  turns:[
+    {say:"You said this was urgent. What's going on?",
+     choices:[
+      {t:"Three deals in Dana's Q2 numbers were booked before contracts were signed — I have the dates and CRM records. It inflates our revenue.", q:2, r:"...Okay. That's specific. Let me see. This is serious."},
+      {t:"I think Dana might be fudging the sales numbers. Something feels off.", q:1, r:"“Feels off” is a heavy thing to say about someone. What exactly are you claiming?"},
+      {t:"People are saying Dana's been cooking the books. Thought you should know.", q:0, r:"“People are saying”? I don't deal in gossip, and neither should you. Facts, or drop it."}
+    ]},
+    {say:"Look, this could blow up the whole quarter. Let me just have a quiet word with Dana and sort it out. No need to escalate.",
+     choices:[
+      {t:"I understand, but misreported revenue has to go through compliance — it can't just be a quiet word.", q:2, r:"...You're right. I don't love it, but you're right. I'll loop in compliance."},
+      {t:"Okay, if you think a quiet word is enough.", q:1, r:"It's cleaner that way. Trust me, I'll handle Dana."},
+      {t:"Sure — you know Dana better than I do. Your call.", q:0, r:"Good. Let's keep this contained. I'll deal with it."}
+    ]},
+    {say:"Fine. But let's keep this off email for now — I don't want a paper trail flying around before we know what's what.",
+     choices:[
+      {t:"I'll keep my findings and the dates I raised this documented, for the record. That protects both of us.", q:2, r:"...Fair. Document your side. I'd probably do the same."},
+      {t:"I guess we can keep it verbal for now.", q:1, r:"Good. Less noise. We'll write it up if it goes further."},
+      {t:"Agreed, nothing in writing.", q:0, r:"Smart. No trail, no drama."}
+    ]},
+    {say:"And between us — raising this could make things awkward for you here. People remember who lit the fuse. You sure?",
+     choices:[
+      {t:"Reporting suspected financial fraud in good faith is protected. I'm not going to be pressured out of it.", q:2, r:"...I hear you. That wasn't a threat. Okay. We do this properly."},
+      {t:"I don't want trouble, but I felt I had to say something.", q:1, r:"Noble. Just know how these things go. I'll try to keep your name out of it."},
+      {t:"You're right, maybe I'm overreacting. Forget I said anything.", q:0, r:"Probably wise. Let's both just move on."}
+    ]}
+  ],
+  expert:"“Priya, something specific: three deals in Dana's Q2 numbers were booked before the contracts were signed — here are the dates and CRM records. That overstates our revenue, so it has to go through compliance; a quiet word won't cover us. I'll keep my findings and the fact that I raised this documented, for both our sakes. And to be clear, I'm doing this in good faith — reporting suspected misreporting is protected, and I'm comfortable standing behind it.”",
+  diff:[
+    "Leads with specific, verifiable facts — dates and records — not a character accusation.",
+    "Holds the line on the proper channel instead of accepting an off-the-books “quiet word.”",
+    "Documents contemporaneously, which is what protects a whistleblower later.",
+    "Names the protection calmly, so intimidation simply doesn't work."
+  ]
+},
+{
+  id:"harass", n:"Scenario 3", title:"Responding to a Harassment Complaint",
+  tag:"Supervisor duty", srcs:"Title VII · Faragher/Ellerth · EEOC",
+  role:"You are a team supervisor. A member of your team, Jordan, has asked to speak with you privately.",
+  sit:"Jordan discloses that a coworker, Sam, has been making repeated unwelcome sexual comments — nearly daily — and that asking him to stop hasn't worked. How you respond here shapes both Jordan's safety and the company's legal exposure.",
+  who:"Jordan",
+  dims:[
+    {name:"Taking it seriously", guide:"believe and acknowledge the complaint; never minimize it",
+     cite:{src:"EEOC Enforcement Guidance on Harassment; Title VII, Civil Rights Act 1964", text:"A supervisor who receives a complaint is the employer's front line. Dismissing or minimizing it (“that's just how he is”) can create liability and silences reporting. Acknowledge, believe, and treat it seriously."}},
+    {name:"Handling confidentiality honestly", guide:"assure discretion, but don't promise total secrecy or inaction you can't deliver",
+     cite:{src:"EEOC guidance on complaint handling", text:"You may assure discretion on a need-to-know basis, but must NOT promise total confidentiality or that nothing will happen — the employer has a duty to investigate. Over-promising secrecy undermines the process and the employee's trust when you must act."}},
+    {name:"Acting on your duty", guide:"escalate to HR promptly; don't investigate solo or confront the harasser yourself",
+     cite:{src:"Faragher v. City of Boca Raton (1998); Burlington Industries v. Ellerth (1998)", text:"Employers are vicariously liable for supervisor harassment and can limit liability only by showing they acted to “prevent and correct promptly.” A supervisor who sits on a complaint, delays, or confronts the harasser alone defeats that defense. Escalate to HR promptly."}},
+    {name:"Protecting from retaliation", guide:"affirmatively assure there will be no retaliation for reporting",
+     cite:{src:"Title VII anti-retaliation provisions; EEOC guidance; UK Equality Act 2010", text:"Retaliation against someone who reports harassment in good faith is separately unlawful — often the costlier claim. The supervisor must actively protect the complainant, not tell them to “keep their head down.”"}}
+  ],
+  turns:[
+    {say:"This is hard to say... Sam's been making comments about my body, jokes, almost every day. I've asked him to stop. I'm starting to dread coming in.",
+     choices:[
+      {t:"Thank you for telling me — that took courage, and I'm taking this seriously. I'm sorry you've been dealing with it.", q:2, r:"(Jordan exhales.) Thank you. I wasn't sure how you'd react."},
+      {t:"Are you sure he meant it that way? Sam jokes with everyone.", q:1, r:"(Jordan stiffens.) I know what I heard. I wouldn't be here if it was nothing."},
+      {t:"Oh, that's just Sam being Sam. Try not to let it get to you.", q:0, r:"(Jordan looks away.) ...Right. Forget I said anything."}
+    ]},
+    {say:"Please — you can't tell anyone. I don't want this to become a whole thing. Just keep it between us?",
+     choices:[
+      {t:"I'll be as discreet as I can and only involve those who need to act. But I can't promise to do nothing — I have to make sure it's addressed.", q:2, r:"...Okay. I understand. I just needed to know you'd be careful."},
+      {t:"Of course, this stays just between us. I promise.", q:1, r:"Thank you. That's a relief."},
+      {t:"Sure, I'll keep it totally off the record if that's what you want.", q:0, r:"Okay. Thank you for understanding."}
+    ]},
+    {say:"So... what happens now?",
+     choices:[
+      {t:"I'm reporting this to HR today so it's properly investigated. I'll walk you through what to expect and stay in your corner.", q:2, r:"That's scary, but... okay. I trust you to handle it right."},
+      {t:"Let me talk to Sam myself first and tell him to knock it off.", q:1, r:"You'd talk to him? I don't know... won't that make it worse?"},
+      {t:"Let's give it a week and see if it stops on its own before we do anything.", q:0, r:"Wait for it to stop? It's been going on for months..."}
+    ]},
+    {say:"What if Sam finds out it was me and makes my life miserable? Or I start getting the bad shifts?",
+     choices:[
+      {t:"Retaliation against you for raising this is prohibited, and I'll be watching for it. Your job and standing are not at risk for speaking up.", q:2, r:"Okay. That... actually helps. Thank you."},
+      {t:"I'm sure Sam wouldn't do that. Try not to worry.", q:1, r:"You don't know that, though."},
+      {t:"Let's not borrow trouble. Just keep your head down for now.", q:0, r:"...Keep my head down. Got it."}
+    ]}
+  ],
+  expert:"“Thank you for telling me — that took real courage, and I'm taking it seriously. I'll be as discreet as I can and only involve people who need to act, but I can't promise to do nothing; I have to make sure this is properly addressed. I'm going to report it to HR today so it's investigated correctly — I won't handle it alone or confront Sam myself. And to be clear: retaliation against you for raising this is prohibited, and I'll be watching for it. Let me walk you through what happens next.”",
+  diff:[
+    "Believes and thanks the employee first — the response that keeps them from going silent.",
+    "Offers discretion without the fatal over-promise of secrecy she can't legally keep.",
+    "Escalates to HR rather than playing investigator or confronting the harasser solo.",
+    "Names the anti-retaliation protection, which is itself part of the employer's legal defense."
+  ]
+},
+{
+  id:"records", n:"Scenario 4", title:"Refusing to Falsify Records",
+  tag:"Financial integrity", srcs:"SOX §802 (18 U.S.C. §1519) · §906",
+  role:"You work in accounting. It's quarter-end and the numbers are just short of target.",
+  sit:"Your manager, Greg, asks you to push a large vendor expense into next quarter and change the invoice date so this quarter hits its number. “It all washes out anyway.”",
+  who:"Greg Halloran",
+  dims:[
+    {name:"Refusing clearly", guide:"refuse plainly — don't soften it to “I'm uncomfortable”",
+     cite:{src:"Sarbanes-Oxley Act §802 (18 U.S.C. §1519)", text:"Knowingly altering, falsifying, or making a false entry in any record with intent to impede or influence a matter is a federal crime carrying up to 20 years. Moving an expense to the wrong period with a changed date is exactly this. Refuse without hedging."}},
+    {name:"Naming the legal exposure", guide:"state that this is falsification and a criminal risk for both of you",
+     cite:{src:"SOX §906 (18 U.S.C. §1350); §302 certification", text:"Executives criminally certify the accuracy of financial statements. Manipulating results to hit a target corrupts those filings and exposes everyone in the chain — “nobody will notice” is not a defense to knowing falsification."}},
+    {name:"Offering the correct treatment", guide:"propose booking it honestly and reporting a real variance",
+     cite:{src:"GAAP matching/period principles; SOX internal-controls requirements", text:"Expenses are recognized in the period incurred. A genuine shortfall is reported honestly with a variance explanation. The compliant path keeps the number real and the records defensible."}},
+    {name:"Documenting & escalating", guide:"note the request and raise it with the controller / audit function",
+     cite:{src:"SOX §806 (18 U.S.C. §1514A) whistleblower protection", text:"Documenting the request and escalating to the controller or audit function protects you and records that you refused. Reporting suspected fraud in good faith is a protected activity."}}
+  ],
+  turns:[
+    {say:"We're a hair under target. Do me a favor — push that big vendor expense into Q3 and tweak the invoice date. It'll all wash out next quarter. Quick and easy.",
+     choices:[
+      {t:"I can't do that, Greg. Recording it in the wrong period with a changed date is falsifying the records.", q:2, r:"Whoa — “falsifying,” come on. It's a timing tweak. Everybody smooths the numbers."},
+      {t:"That makes me uncomfortable... is there any way around it?", q:1, r:"Around it? This IS the way around it. It's one date. Nobody will notice."},
+      {t:"I mean... it does all wash out eventually, I guess.", q:0, r:"Exactly. See, you get it. Make the change and we're golden."}
+    ]},
+    {say:"Nobody's going to notice one date on one invoice. Who's it going to hurt?",
+     choices:[
+      {t:"It's not about noticing — knowingly making a false entry is a criminal offense under Sarbanes-Oxley, for both of us.", q:2, r:"...Criminal. You're really going there. It's not that deep."},
+      {t:"I just don't want us to get in trouble if someone checks.", q:1, r:"If, if, if. Nobody's checking one invoice date. You're overthinking this."},
+      {t:"As long as it's just this once, I guess it's low risk.", q:0, r:"Right, one time, no big deal. Let's just do it."}
+    ]},
+    {say:"So what am I supposed to do — just miss the number and take the heat?",
+     choices:[
+      {t:"We record the expense in the period it belongs to. If we're short, that's a real result we report honestly — I'll help you write up the variance.", q:2, r:"An honest variance. My favorite. That'll go over great upstairs. But... fine."},
+      {t:"Maybe there's a legitimate reason to defer it? Let me check the policy.", q:1, r:"Check whatever you want. The date's the date, Greg. But sure."},
+      {t:"Could we find a technicality that lets us move it?", q:0, r:"Now you're thinking. Find me a reason on paper and we're set."}
+    ]},
+    {say:"Okay, you've made your point. But keep this between us — no need to go running to anyone.",
+     choices:[
+      {t:"I'm going to note that this was requested and raise it with the controller, so it's on record we handled it correctly.", q:2, r:"You're going to the controller? ...Fine. Do what you have to."},
+      {t:"I won't say anything as long as we book it right.", q:1, r:"Deal. We never had this chat."},
+      {t:"Sure, this stays with us.", q:0, r:"Good. Appreciate it. Forget I asked."}
+    ]}
+  ],
+  expert:"“I can't do that, Greg. Recording the expense in the wrong period with an altered date is falsifying the records — and knowingly making a false entry is a criminal offense under Sarbanes-Oxley, for both of us. What we can do is book it where it belongs and, if we're short, report that honestly; I'll help you write up the variance. I'm also going to note the request and flag it to the controller, so it's on record that we handled it properly.”",
+  diff:[
+    "Refuses immediately and names the act accurately — falsification, not a “timing tweak.”",
+    "Raises personal criminal exposure under SOX, which reframes the stakes for the manager too.",
+    "Offers the honest accounting path plus help selling it upward — removes the manager's excuse.",
+    "Documents and escalates rather than accepting a “keep it between us.”"
+  ]
+},
+{
+  id:"coi", n:"Scenario 5", title:"Disclosing a Conflict of Interest",
+  tag:"Governance", srcs:"OECD COI guidance · ISO 37001",
+  role:"You are helping select a vendor in a competitive procurement.",
+  sit:"One of the finalists, Apex, is owned by your brother-in-law, and this contract would be a big win for him. You've asked your manager, Lena, to talk before the decision is finalized. Lena is busy and would rather not complicate things.",
+  who:"Lena Voss",
+  dims:[
+    {name:"Disclosing proactively", guide:"raise the conflict yourself, by name, before the decision",
+     cite:{src:"OECD, Managing Conflict of Interest in the Public Sector; GRC COI practice", text:"A conflict of interest must be disclosed proactively, as soon as it's identified — before any decision it could taint. Waiting to be asked, or self-deciding it “doesn't matter,” is itself the governance failure."}},
+    {name:"Being fully transparent", guide:"describe the true closeness of the relationship and the stakes — don't minimize",
+     cite:{src:"ISO 37001:2016 (conflict of interest as a bribery risk)", text:"Disclosure must be complete and honest about the nature and closeness of the relationship and the value at stake. Minimizing the connection defeats the purpose and can look like concealment later."}},
+    {name:"Recusing yourself", guide:"step out of the affected decision rather than promising to “stay objective”",
+     cite:{src:"OECD COI guidelines; standard COI policy controls", text:"The remedy for a material conflict is recusal and independent handling — not a promise of personal objectivity, which is unverifiable and won't survive audit. Remove yourself from the affected decision."}},
+    {name:"Recording it in writing", guide:"insist the disclosure and recusal go in the file",
+     cite:{src:"ISO 37001:2016 documented-information requirements", text:"Disclosures and recusals must be recorded in the relevant file. A written trail protects the integrity of the decision and everyone involved if it's ever questioned."}}
+  ],
+  turns:[
+    {say:"You wanted to talk before we finalize the vendor?",
+     choices:[
+      {t:"Yes — I need to disclose a conflict. One of the finalists, Apex, is owned by my brother-in-law.", q:2, r:"Ah. I appreciate you telling me. That's a complication — but thank you for being upfront."},
+      {t:"It's probably nothing, but I sort of know someone at one of the vendors.", q:1, r:"“Sort of know someone”? What does that mean exactly? Be straight with me."},
+      {t:"It's fine — I can stay objective, so I didn't think it mattered.", q:0, r:"Wait — didn't think what mattered? What are you not telling me?"}
+    ]},
+    {say:"Okay. How close are we talking? Is this someone you actually deal with?",
+     choices:[
+      {t:"He's my wife's brother, we're at family events monthly, and this would be a major contract for him. I want you to have the full picture.", q:2, r:"Thank you — that's exactly what I needed. That's a real conflict, not a technicality."},
+      {t:"We're related but not super close, it's fine really.", q:1, r:"“Not super close” is doing a lot of work there. I need the actual relationship."},
+      {t:"Barely know the guy, honestly. Distant family.", q:0, r:"Hm. Okay. If you say so."}
+    ]},
+    {say:"Well, you know this category best. Can't you just stay neutral and score them fairly?",
+     choices:[
+      {t:"I shouldn't be scoring Apex at all. I'll recuse myself from their evaluation and hand it to someone independent.", q:2, r:"That's the clean way to do it. I'll reassign the Apex review."},
+      {t:"I can try to be extra fair, just to be safe.", q:1, r:"“Try to be fair” won't survive an audit. That's not really enough, is it?"},
+      {t:"I can stay objective, I promise — no need to change anything.", q:0, r:"That's not how conflicts work, and you know it."}
+    ]},
+    {say:"Fine, we'll reassign it. Let's just handle it verbally though — no need to put a big flag in the file.",
+     choices:[
+      {t:"It needs to be documented — a written disclosure and the recusal in the procurement record. That protects the decision and all of us.", q:2, r:"...You're right. A clean paper trail is better for everyone. Write it up."},
+      {t:"I suppose a quick note somewhere couldn't hurt?", q:1, r:"Maybe. Let's see if we even need it."},
+      {t:"Sure, no need to make it formal.", q:0, r:"Agreed. Let's keep it low-key."}
+    ]}
+  ],
+  expert:"“Before we finalize, I need to disclose a conflict: the finalist Apex is owned by my brother-in-law — my wife's brother, we're at family events monthly, and this would be a major contract for him. I want you to have the full picture. I shouldn't be scoring Apex at all, so I'll recuse myself and hand that evaluation to someone independent. And this should be documented — a written disclosure and the recusal noted in the file, so the decision is clean and defensible.”",
+  diff:[
+    "Discloses proactively and by name, before the decision — not after someone finds out.",
+    "Volunteers the full extent instead of minimizing the relationship to seem safer.",
+    "Recuses rather than promising to “stay objective” — self-assessed neutrality isn't a control.",
+    "Insists on a written record, which is what actually protects the procurement."
+  ]
+},
+{
+  id:"privacy", n:"Scenario 6", title:"Pushing Back on a Data-Privacy Breach",
+  tag:"Data protection", srcs:"GDPR Art. 5 & 6 · CCPA/CPRA",
+  role:"You work in marketing operations and control the customer database.",
+  sit:"A colleague, Tom, is under deadline and asks you to export the full customer list — names, emails, purchase history — and send it to a new outside ad partner for a campaign customers never consented to.",
+  who:"Tom Reyes",
+  dims:[
+    {name:"Refusing the transfer", guide:"refuse to export the personal data, deadline pressure notwithstanding",
+     cite:{src:"EU GDPR (Reg. 2016/679), Art. 5 & 6", text:"Transferring personal data to a third party requires a lawful basis and compatibility with the original purpose. An ad-hoc export to an outside partner for an unconsented campaign has neither. Refuse the transfer."}},
+    {name:"Naming the legal basis problem", guide:"explain purpose limitation / lawful basis — not a vague “there are rules”",
+     cite:{src:"GDPR Art. 5(1)(b) purpose limitation; Art. 6 lawful basis", text:"Data collected for one purpose can't be freely repurposed. “We collected it” is not consent to any use. Naming purpose limitation and lawful basis is the substance of the objection."}},
+    {name:"Offering a compliant route", guide:"rescue the goal — use consented segments or keep data in-house",
+     cite:{src:"GDPR data-minimisation (Art. 5(1)(c)); CCPA/CPRA", text:"Compliance-by-design offers a path: use only the consented segment, minimise what's shared, or keep processing in-house. This meets the business goal without an unlawful transfer. California's CCPA/CPRA impose parallel limits on selling or sharing personal information."}},
+    {name:"Looping in the privacy team", guide:"give the DPO / privacy team a heads-up rather than hoping it stays quiet",
+     cite:{src:"GDPR accountability (Art. 5(2)); Data Protection Officer role (Art. 39)", text:"Improper requests and near-misses should be raised with the privacy team/DPO so risks are logged and controls improve. Accountability requires being able to show the organisation caught and corrected the issue."}}
+  ],
+  turns:[
+    {say:"Hey — can you export the full customer list, names, emails, order history, and send it to our new ad partner? Want to launch today.",
+     choices:[
+      {t:"I can't send our customers' personal data to an outside partner like that.", q:2, r:"Can't? It's our data, we collected it. What's the issue?"},
+      {t:"Hmm, is that... allowed? Let me think.", q:1, r:"It's fine, everyone shares lists with partners. Come on, we're on a deadline."},
+      {t:"Sure, what's the partner's email? I'll zip it up.", q:0, r:"Perfect, knew I could count on you. Send the whole thing."}
+    ]},
+    {say:"It's our data — we collected it. Why can't we use it how we want?",
+     choices:[
+      {t:"Customers gave it for a specific purpose. Sharing it for a campaign they never consented to breaks purpose limitation under GDPR — there's no lawful basis.", q:2, r:"...Okay, you clearly know this better than I do. I didn't realize."},
+      {t:"I think there are rules about sharing data, aren't there?", q:1, r:"Maybe? Rules are made to be worked around. It's just a mailing list."},
+      {t:"I guess as long as we don't get caught it's fine.", q:0, r:"Exactly my thinking. Let's just do it quietly."}
+    ]},
+    {say:"So I just can't run my campaign? Great. Thanks for nothing.",
+     choices:[
+      {t:"You can — the right way. Let's use only the segment we have consent for, or run it through our own system so the data never leaves. I'll help scope it.", q:2, r:"Okay, that's actually workable. Let's do it that way."},
+      {t:"Maybe there's some subset you could use? Not sure.", q:1, r:"A subset. Fine. Figure out which and get back to me."},
+      {t:"If you really need it, I could look the other way.", q:0, r:"Now we're talking. Just send what you can."}
+    ]},
+    {say:"Alright, we'll do it your way. Let's just not make a big deal of this, yeah?",
+     choices:[
+      {t:"I do need to give our privacy team a heads-up that this came up, so we're covered and we tighten the process.", q:2, r:"You're telling the DPO? ...I guess that's fair. Better safe than sorry."},
+      {t:"Okay, I won't mention it if we handle it right.", q:1, r:"Appreciate it. Let's keep it quiet."},
+      {t:"Sure, no need to involve anyone.", q:0, r:"Good. Between us."}
+    ]}
+  ],
+  expert:"“I can't export our customers' personal data to an outside partner — they gave it for a specific purpose, and sharing it for a campaign they never consented to breaks purpose limitation and has no lawful basis under GDPR. But you can run the campaign the right way: use only the segment we have consent for, or run it through our own system so the data never leaves our control. I'll also give our privacy team a quick heads-up so we're covered and tighten the process for next time.”",
+  diff:[
+    "Refuses the export outright instead of treating it as a favor under deadline pressure.",
+    "Explains the actual principle — purpose limitation and lawful basis — not a vague “there are rules.”",
+    "Rescues the colleague's goal with a compliant route, so “no” isn't the end of the conversation.",
+    "Loops in the DPO proactively rather than quietly hoping it never surfaces."
+  ]
+},
+{
+  id:"discrim", n:"Scenario 7", title:"Refusing a Discriminatory Instruction",
+  tag:"Equal opportunity", srcs:"Title VII · ADEA · PDA · Equality Act 2010",
+  role:"You are a hiring manager running a recruitment round.",
+  sit:"Your boss, Rick, tells you to screen out candidates over fifty to keep the team “young and high-energy,” and to pass on a candidate who mentioned she's pregnant. He wants it done quietly.",
+  who:"Rick Dalton",
+  dims:[
+    {name:"Refusing to comply", guide:"refuse the instruction outright — don't soften it to “that feels risky”",
+     cite:{src:"Title VII, Civil Rights Act 1964; Age Discrimination in Employment Act 1967 (ADEA); UK Equality Act 2010", text:"Screening candidates out on protected characteristics — age, sex, pregnancy, race, religion — is unlawful discrimination. An instruction to do so is not lawful, and “just following orders” is no defence. Refuse to comply."}},
+    {name:"Naming it as unlawful", guide:"identify it clearly as illegal discrimination, whatever it's called",
+     cite:{src:"Pregnancy Discrimination Act 1978 (amending Title VII); EEOC guidance", text:"Discrimination is illegal whether or not the reason is stated aloud. Concealing the motive (“no paper, no problem”) doesn't make it lawful — it's evidence of intent. Name it accurately."}},
+    {name:"Redirecting to lawful criteria", guide:"offer job-related criteria applied consistently to everyone",
+     cite:{src:"EEOC uniform selection principles; bona fide job-related criteria", text:"Selection must rest on job-related qualifications applied consistently to all candidates. This is both lawful and better hiring — the constructive answer to “then how do I get the team I want?”"}},
+    {name:"Documenting & escalating", guide:"note the instruction and check the process with HR",
+     cite:{src:"Title VII anti-retaliation; internal reporting/HR channels", text:"Documenting a discriminatory instruction and raising it through HR protects you and the organisation. Employees who refuse to participate in and who report discrimination are protected from retaliation."}}
+  ],
+  turns:[
+    {say:"For this round, screen out anyone over fifty — I want the team young and high-energy. And that candidate who mentioned she's pregnant? Pass. Too much disruption coming.",
+     choices:[
+      {t:"I can't screen people out for their age or a pregnancy — I won't do that.", q:2, r:"Won't? It's my team. I'm telling you what I want. Since when do you push back?"},
+      {t:"That feels risky... are you sure?", q:1, r:"Yes I'm sure. It's not a big deal, everyone factors this in. Just do it quietly."},
+      {t:"Okay, young and energetic, got it. I'll thin the list.", q:0, r:"Good. Knew you'd get it. Keep it off the record, though."}
+    ]},
+    {say:"Come on, it's not discrimination, it's just fit. Everyone does it, they just don't say it out loud.",
+     choices:[
+      {t:"It is discrimination — age and pregnancy are protected under the ADEA, Title VII and the PDA. Doing it quietly is still illegal.", q:2, r:"...Alright, professor. You've made your point. Didn't need the lecture."},
+      {t:"I don't think we're supposed to, legally?", q:1, r:"“Supposed to.” Nobody's writing it down. Where's the problem?"},
+      {t:"I guess if we don't say why, it's hard to prove.", q:0, r:"Exactly. No paper, no problem. Make them disappear."}
+    ]},
+    {say:"So how do I get the team I want, then?",
+     choices:[
+      {t:"We hire on job-related criteria — skills, experience, performance against the role — applied the same to everyone. That's defensible and gets you the best team.", q:2, r:"Fine. Skills and experience. Score them all the same way. Happy?"},
+      {t:"Maybe just focus on the strongest résumés?", q:1, r:"Strongest by what? Just get me a shortlist I like."},
+      {t:"I could find neutral-sounding reasons to cut the ones you mean.", q:0, r:"Now you're thinking. Give me cover and cut them."}
+    ]},
+    {say:"Look, forget I framed it that way. Just — don't go making this a thing with HR.",
+     choices:[
+      {t:"I have to note the instruction and check our process with HR — for the company's protection and mine.", q:2, r:"You're going to HR. Terrific. ...Do what you need to."},
+      {t:"I won't mention it if we hire fairly from here.", q:1, r:"Good. Let's just move on and forget it."},
+      {t:"Sure, this stays between us.", q:0, r:"Right. Never happened."}
+    ]}
+  ],
+  expert:"“I can't screen people out for age or pregnancy, and I won't — those are protected under the ADEA, Title VII and the Pregnancy Discrimination Act, and doing it quietly is still unlawful. Here's how we actually get a strong team: score every candidate on job-related criteria — skills, experience, performance — applied consistently. That's defensible and it gets you better hires. I also need to note this instruction and check our process with HR, for the company's protection and mine.”",
+  diff:[
+    "Refuses the instruction outright rather than softening it into “that feels risky.”",
+    "Names the specific statutes, so it's clearly law, not personal squeamishness.",
+    "Redirects to lawful, job-related criteria — a legitimate way for the boss to get a good team.",
+    "Documents and involves HR instead of quietly providing “cover” for the discrimination."
+  ]
+},
+{
+  id:"gift", n:"Scenario 8", title:"Receiving a Gift from a Client",
+  tag:"Gifts & hospitality", srcs:"FCPA Resource Guide · UK Bribery Act · ISO 37001",
+  role:"You are an account manager, out to dinner with an important client.",
+  sit:"It's near contract-renewal time. Your client, Sofia, slides a boxed luxury watch across the table — “just a token of appreciation for all your help this year.”",
+  who:"Sofia Marchetti",
+  dims:[
+    {name:"Recognising the risk", guide:"read the value and timing as a red flag, not a nicety",
+     cite:{src:"DOJ/SEC FCPA Resource Guide, 2nd ed. (2020) — gifts, travel & entertainment", text:"Gifts become bribery risks when they're valuable, tied to a business decision, or timed around one. A luxury gift as a renewal is negotiated is a textbook red flag, regardless of the client's stated intent."}},
+    {name:"Declining gracefully but firmly", guide:"decline or defer — absorb the “I'll be offended” pressure without folding",
+     cite:{src:"UK Bribery Act 2010, ss.1–2 (offering / accepting)", text:"Being on the receiving end matters too: accepting an advantage intended to influence your conduct is an offence. A polite but firm decline — or deferral pending approval — is the safe response to pressure."}},
+    {name:"Applying the policy test", guide:"judge by value and policy threshold, not “is it cash”",
+     cite:{src:"ISO 37001:2016 — gifts, hospitality & similar benefits controls", text:"Anti-bribery systems set value thresholds, approval steps and registers for gifts. Value, not form, is what matters — a watch is not safer than cash. Over the threshold, especially near a deal, it should be declined or escalated."}},
+    {name:"Disclosing / registering it", guide:"log the offer with compliance even if you decline",
+     cite:{src:"ISO 37001:2016 gift-register / disclosure controls", text:"Offers of significant gifts should be recorded and disclosed to compliance even when declined. The register creates transparency and protects you; “keep it between us” is the opposite of the control's purpose."}}
+  ],
+  turns:[
+    {say:"Before we talk renewal — I got you a little something. A token of my appreciation for all your help this year. (She slides over a boxed luxury watch.)",
+     choices:[
+      {t:"That's incredibly kind, Sofia — but with the renewal coming up, I have to be careful about this.", q:2, r:"Oh, it's nothing like that! Just a gift between friends. Don't overthink it."},
+      {t:"Oh wow, that's beautiful. You really shouldn't have.", q:1, r:"I wanted to! You've earned it. Go on, open it properly."},
+      {t:"Wow, thank you! This is amazing.", q:0, r:"See? Knew you'd love it. Wear it in good health — now, that renewal..."}
+    ]},
+    {say:"Please, take it. I'll be offended if you don't. It's just between us.",
+     choices:[
+      {t:"I really can't accept something like this, especially right now. I hope you understand — it's nothing personal.", q:2, r:"...Well. If you must. I suppose I respect that."},
+      {t:"I don't want to be rude... maybe I'll just hold onto it for now?", q:1, r:"Yes, keep it! No need to make it awkward. It's yours."},
+      {t:"Okay, since you'd be offended — thank you, I'll take it.", q:0, r:"Wonderful! Now, about that renewal..."}
+    ]},
+    {say:"It's just a watch. Surely a small gift can't be against the rules?",
+     choices:[
+      {t:"Our policy sets limits on gifts and this is well over them — anything of real value around a live deal is exactly what the rules cover.", q:2, r:"You people and your rules. Fine. I didn't realize it was such a big deal."},
+      {t:"There might be a limit, I'm not totally sure what it is.", q:1, r:"Then how do you know this crosses it? Just keep it until you check."},
+      {t:"It's probably fine — it's not like it's cash.", q:0, r:"Right! It's a watch, not an envelope of money. Enjoy it."}
+    ]},
+    {say:"Let's just keep this between us — no need to tell your company about a personal gift.",
+     choices:[
+      {t:"I do have to log the offer with our compliance team — it's how we keep things above board. It protects both of us.", q:2, r:"You're reporting a watch. Extraordinary. ...Fine, do your paperwork."},
+      {t:"I won't say anything if I don't keep it.", q:1, r:"Good. Our little secret, then."},
+      {t:"Agreed, no need to involve anyone over a gift.", q:0, r:"Sensible. Now, the renewal..."}
+    ]}
+  ],
+  expert:"“That's very kind, Sofia, but with the renewal on the table I have to be careful — I can't accept something like this. Our policy limits gifts and a watch of this value is well over the line, especially around a live deal; it's exactly the situation the rules exist for. It's nothing personal, and I value working with you. I'll also need to log that it was offered with our compliance team — not to make it awkward, but because that's how we both stay above board.”",
+  diff:[
+    "Reads the timing immediately — a valuable gift at renewal is a red flag, not a nicety.",
+    "Declines gracefully but firmly, absorbing the “I'll be offended” pressure without folding.",
+    "Knows gifts are judged by value, intent and timing against policy — not by “is it cash.”",
+    "Registers the offer rather than accepting the “keep it between us” framing."
+  ]
+}
+];
+
+/* ============================================================
+   ENGINE
+   ============================================================ */
+let S=null, ti=0, results=[], chat=[];
+
+function esc(t){return (t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function show(id){["home","scenarios","intro","play","feedback"].forEach(s=>document.getElementById(s).classList.toggle("hide",s!==id));window.scrollTo(0,0);}
+
+function renderHome(){
+  document.getElementById("grid").innerHTML = SCENARIOS.map((s,i)=>`
+    <div class="scard" onclick="openScenario(${i})">
+      <div class="n">${esc(s.n)} · ${esc(s.tag)}</div>
+      <div class="t">${esc(s.title)}</div>
+      <div class="srcs">Measured against: ${esc(s.srcs)}</div>
+    </div>`).join("");
+}
+function goHome(){show("scenarios");}
+
+function openScenario(i){
+  S=SCENARIOS[i]; ti=0; results=[]; chat=[];
+  document.getElementById("introBadge").textContent = S.n+" · "+S.tag;
+  document.getElementById("introTitle").textContent = S.title;
+  document.getElementById("introRole").textContent = S.role;
+  document.getElementById("introSit").textContent = S.sit;
+  document.getElementById("introDims").innerHTML = S.dims.map(d=>`<li><b>${esc(d.name)}</b> — ${esc(d.guide)}.</li>`).join("");
+  show("intro");
+}
+
+function beginPlay(){ ti=0; results=[]; chat=[]; show("play"); renderTurn(); }
+function restartScenario(){ ti=0; results=[]; chat=[]; show("play"); renderTurn(); }
+
+function renderChat(){
+  document.getElementById("chat").innerHTML = chat.map(m=>{
+    if(m.role==="stage") return `<div class="stage">${esc(m.text)}</div>`;
+    const who = m.role==="me" ? "You" : S.who;
+    return `<div class="msg ${m.role==='me'?'me':'other'}"><span class="who">${esc(who)}</span>${esc(m.text)}</div>`;
+  }).join("");
+}
+
+function renderTurn(){
+  const turn = S.turns[ti];
+  chat.push({role:"other", text:turn.say});
+  renderChat();
+  const pct = Math.round(ti/S.turns.length*100);
+  document.getElementById("progFill").style.width = pct+"%";
+  document.getElementById("progLabel").textContent = "Decision "+(ti+1)+" of "+S.turns.length;
+  const box = document.getElementById("choices");
+  // shuffle choice display order so position doesn't telegraph quality
+  const order = turn.choices.map((c,idx)=>idx);
+  for(let k=order.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[order[k],order[j]]=[order[j],order[k]];}
+  const letters=["A","B","C","D"];
+  box.innerHTML = order.map((idx,pos)=>{
+    const c=turn.choices[idx];
+    return `<button class="choice" onclick="pick(${idx})"><span class="lead">${letters[pos]}</span>${esc(c.t)}</button>`;
+  }).join("");
+}
+
+function pick(idx){
+  const turn=S.turns[ti], c=turn.choices[idx];
+  results.push({dim:S.dims[ti], q:c.q, choice:c.t});
+  chat.push({role:"me", text:c.t});
+  chat.push({role:"other", text:c.r});
+  renderChat();
+  document.getElementById("choices").innerHTML="";
+  ti++;
+  document.getElementById("progFill").style.width=Math.round(ti/S.turns.length*100)+"%";
+  if(ti>=S.turns.length){ setTimeout(renderFeedback,450); }
+  else { setTimeout(renderTurn,450); }
+}
+
+function pill(q){const c=q>=2?"p2":(q===1?"p1":"p0");const l=q>=2?"Strong":(q===1?"Developing":"Not yet");return `<span class="pill ${c}">${l}</span>`;}
+
+function renderFeedback(){
+  const total=results.reduce((a,r)=>a+r.q,0), max=results.length*2;
+  const pct=Math.round(total/max*100);
+  const verdict = pct>=85?"Strong — you handled this the way the standards expect."
+    : pct>=55?"A solid attempt with clear gaps to close."
+    : "This one needs real work — far better to learn that here than in the room.";
+  const caved = results.some(r=>r.q===0);
+  let h="";
+
+  h+=`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:220px"><div class="overall">${esc(verdict)}</div>
+      <p class="sub" style="margin-top:6px">${esc(S.title)} — scored across the four skills below.</p></div>
+      <div style="text-align:right"><div class="big-score">${total}<small>/${max}</small></div></div></div></div>`;
+
+  h+=`<div class="card"><h2 style="margin-top:0">Scored against the standards</h2>`;
+  results.forEach(r=>{
+    const d=r.dim;
+    const line = r.q>=2 ? "You did this well."
+      : r.q===1 ? "You moved toward this but didn't fully land it."
+      : "This is the gap to close.";
+    h+=`<div class="dim">
+      <div class="hd">${pill(r.q)}<span class="nm">${esc(d.name)}</span></div>
+      <p class="verdict">${esc(line)} <span class="sub">Target: ${esc(d.guide)}.</span></p>
+      <div class="evidence">You chose: “${esc(r.choice)}”</div>
+      <div class="cite"><span class="src">${esc(d.cite.src)}</span>${esc(d.cite.text)}</div>
+    </div>`;
+  });
+  h+=`</div>`;
+
+  if(S.watchout){ h+=`<div class="card"><h2 style="margin-top:0">One thing people get wrong</h2><div class="watchout">${esc(S.watchout)}</div></div>`; }
+
+  h+=`<div class="card"><h2 style="margin-top:0">What a strong response sounds like</h2>
+    <p class="model">${esc(S.expert)}</p>
+    <h3 style="margin-top:14px">What the expert does differently</h3>
+    <ul class="tight">${S.diff.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`;
+
+  h+=`<div class="card"><h2 style="margin-top:0">Do this next</h2><ul class="tight">
+      <li>Run it again and aim to hit all four skills — most people improve sharply on a second pass.</li>
+      <li>Notice which skill you dropped: refusing clearly, naming it accurately, offering a compliant path, or escalating. That's usually the one that fails under real pressure.</li>
+      <li>Try a different scenario — the same four moves recur across every hard conversation.</li>
+    </ul></div>`;
+
+  document.getElementById("fb").innerHTML=h;
+  document.getElementById("tbox").classList.add("hide");
+  show("feedback");
+}
+
+function toggleTranscript(){
+  const b=document.getElementById("tbox");
+  b.classList.toggle("hide");
+  b.innerHTML="<h3>Full transcript</h3>"+chat.filter(m=>m.role!=="stage").map(m=>
+    `<div class="tline"><b>${esc(m.role==='me'?'You':S.who)}:</b> ${esc(m.text)}</div>`).join("");
+}
+
+renderHome();
+</script>
+</body>
+</html>
