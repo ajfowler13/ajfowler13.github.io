@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>When Seconds Count — Decision Trainer</title>
+<style>
+  :root{
+    --navy:#2E0A0A; --accent:#290303; --accent-dark:#922424;
+    --bg:#d3cccc; --card:#e9E7E7; --ink:#3c2222; --muted:#785b5b;
+    --good:#204422; --good-bg:#e7f3e7; --bad:#85281d; --bad-bg:#f8e5e2;
+    --line:#2E0A0A;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px 40px;
+  }
+  .wrap{width:100%; max-width:680px}
+  header.top{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:18px}
+  .brand{font-weight:700; color:var(--navy); font-size:1.05rem; letter-spacing:.2px}
+  .brand span{color:var(--accent)}
+  .sub{color:var(--muted); font-size:.82rem}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    box-shadow:0 6px 20px rgba(31,58,95,.06); padding:26px 24px;
+  }
+  h1{margin:0 0 8px; color:var(--navy); font-size:1.5rem}
+  p.lead{color:var(--muted); margin:0 0 20px}
+  .pill{display:inline-block; background:#f8eaea; color:var(--accent-dark); font-size:.72rem;
+    font-weight:700; letter-spacing:.5px; text-transform:uppercase; padding:4px 10px; border-radius:999px}
+  button{font-family:inherit; cursor:pointer}
+  .btn{
+    background:var(--accent); color:#fff; border:none; border-radius:10px;
+    padding:13px 22px; font-size:1rem; font-weight:600; transition:background .15s;
+  }
+  .btn:hover{background:var(--accent-dark)}
+  .btn:focus-visible{outline:3px solid #e69c9c; outline-offset:2px}
+  .btn.ghost{background:transparent; color:var(--accent-dark); border:1.5px solid var(--line)}
+  .btn.ghost:hover{background:#faf2f2}
+  /* progress */
+  .progress-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; font-size:.85rem; color:var(--muted)}
+  .bar{height:7px; background:#979393; border-radius:99px; overflow:hidden; margin-bottom:20px}
+  .bar > i{display:block; height:100%; width:0; background:var(--accent); transition:width .3s}
+  .situation{font-size:1.18rem; color:var(--navy); font-weight:600; margin:6px 0 20px}
+  /* choices */
+  .choices{display:flex; flex-direction:column; gap:11px}
+  .choice{
+    text-align:left; background:#fff; border:1.5px solid var(--line); border-radius:12px;
+    padding:14px 16px; font-size:1rem; color:var(--ink); transition:border-color .12s, background .12s;
+    display:flex; gap:12px; align-items:flex-start; width:100%;
+  }
+  .choice:hover:not([disabled]){border-color:var(--accent); background:#fff7f7}
+  .choice:focus-visible{outline:3px solid #e69c9c; outline-offset:2px}
+  .choice .mark{flex:0 0 auto; width:22px; height:22px; margin-top:1px; border-radius:6px;
+    border:1.6px solid #d8c4c4; display:flex; align-items:center; justify-content:center; font-size:.9rem; font-weight:800}
+  .choice.correct{border-color:var(--good); background:var(--good-bg)}
+  .choice.correct .mark{background:var(--good); border-color:var(--good); color:#fff}
+  .choice.wrong{border-color:var(--bad); background:var(--bad-bg)}
+  .choice.wrong .mark{background:var(--bad); border-color:var(--bad); color:#fff}
+  .choice[disabled]{cursor:default}
+  /* feedback */
+  .feedback{margin-top:18px; border-radius:12px; padding:14px 16px; font-size:.97rem; display:none}
+  .feedback.show{display:block}
+  .feedback.ok{background:var(--good-bg); border:1px solid #cfe6cf}
+  .feedback.no{background:var(--bad-bg); border:1px solid #eecac3}
+  .feedback .verdict{font-weight:700; display:block; margin-bottom:3px}
+  .feedback.ok .verdict{color:var(--good)}
+  .feedback.no .verdict{color:var(--bad)}
+  .foot-row{display:flex; justify-content:space-between; align-items:center; margin-top:22px; gap:12px}
+  .streak{font-size:.85rem; color:var(--muted)}
+  .hidden{display:none !important}
+  /* results */
+  .score-big{font-size:2.6rem; font-weight:800; color:var(--navy); margin:6px 0 2px}
+  .result-msg{color:var(--muted); margin:0 0 22px}
+  .review h3{color:var(--navy); font-size:1rem; margin:22px 0 10px}
+  .review-item{border-left:3px solid var(--bad); background:#faf1ef; border-radius:0 10px 10px 0; padding:10px 14px; margin-bottom:10px; font-size:.92rem}
+  .review-item b{color:var(--navy)}
+  footer{color:var(--muted); font-size:.78rem; text-align:center; margin-top:22px}
+  footer a{color:var(--accent-dark)}
+  .note{font-size:.8rem; color:var(--muted); margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">When Seconds Count <span>· Decision Trainer</span></div>
+    <div class="sub">Build the reflex</div>
+  </header>
+
+  <!-- START -->
+  <section id="start" class="card">
+    <span class="pill">Rapid decision practice</span>
+    <h1 style="margin-top:12px">Would you know what to do?</h1>
+    <p class="lead">A quick-fire way to build your decision-making reflex for a workplace medical emergency. You'll face short situations and choose how to respond — with instant feedback on why. Practice as often as you like. There's no pass or fail; the goal is to make the right response feel automatic before it ever matters.</p>
+    <button class="btn" id="startBtn">Start practice</button>
+    <p class="note">Takes about 5 minutes · Based on AHA, American Red Cross, and OSHA guidance.</p>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="card hidden" aria-live="polite">
+    <div class="progress-row">
+      <span id="counter">Situation 1</span>
+      <span class="pill" id="catTag">Recognize</span>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="situation" id="situation"></div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback" role="status">
+      <span class="verdict" id="verdict"></span>
+      <span id="why"></span>
+    </div>
+    <div class="foot-row">
+      <span class="streak" id="streak"></span>
+      <button class="btn hidden" id="nextBtn">Next</button>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="card hidden">
+    <span class="pill">Round complete</span>
+    <div class="score-big" id="scoreBig"></div>
+    <p class="result-msg" id="resultMsg"></p>
+    <div class="review" id="review"></div>
+    <div class="foot-row" style="justify-content:flex-start; gap:12px">
+      <button class="btn" id="againBtn">Practice again</button>
+      <button class="btn ghost" id="restartBtn">Back to start</button>
+    </div>
+  </section>
+
+  <footer>
+    Performance-support companion to the <b>When Seconds Count</b> WBT · Designed by Amy Fowler ·
+    <span>A rehearsal tool — not for use during an actual emergency. In a real emergency, call 911.</span>
+  </footer>
+</div>
+
+<script>
+const QUESTIONS = [
+{ cat:"Recognize", situation:"Minutes after eating, a coworker breaks out in hives, their lips look swollen, and they say their throat feels tight.", options:[
+      {t:"A severe allergic reaction — anaphylaxis", correct:true, why:"Hives, swelling, and throat tightness soon after a trigger point to anaphylaxis, which can turn life-threatening fast."},
+      {t:"A panic attack — help them calm down", correct:false, why:"Throat tightness and swelling after a food trigger are physical signs of anaphylaxis, not anxiety. Treat it as an emergency."},
+      {t:"Mild indigestion — get them water", correct:false, why:"Hives plus swelling and a tight throat aren't indigestion. This is anaphylaxis — act now."}
+    ]},
+  { cat:"Recognize", situation:"A coworker is awake but pale and sweating, clutching their chest and describing pressure that spreads to their arm.", options:[
+      {t:"Possible heart attack — call 911 and keep them calm and resting", correct:true, why:"Awake, in pain, with spreading chest pressure is a heart attack. Call 911 and keep them still; it can progress to cardiac arrest."},
+      {t:"Start CPR right away", correct:false, why:"CPR is for someone unresponsive and not breathing. This person is awake — call 911 and monitor closely."},
+      {t:"Have them walk it off", correct:false, why:"Exertion is dangerous during a heart attack. Keep them resting and get EMS on the way."}
+    ]},
+  { cat:"Recognize", situation:"Someone starts choking at lunch but is coughing forcefully and can still speak between coughs.", options:[
+      {t:"Encourage them to keep coughing and stay close", correct:true, why:"A forceful cough is the best way to clear a mild blockage. Don't intervene yet — stay ready in case it worsens."},
+      {t:"Start abdominal thrusts immediately", correct:false, why:"Thrusts are for a severe blockage where the person can't cough, speak, or breathe. A strong cough means air is moving."},
+      {t:"Give them water to wash it down", correct:false, why:"Never offer fluids to someone choking. Let them cough — it's working."}
+    ]},
+  { cat:"Recognize", situation:"A coworker suddenly drops to the floor but is breathing normally and starts to come around within a few seconds.", options:[
+      {t:"They likely fainted — keep them lying down and monitor them", correct:true, why:"Brief loss of consciousness with normal breathing and quick recovery is fainting. Keep them down and call 911 if they don't fully recover."},
+      {t:"Start CPR", correct:false, why:"CPR is only for someone unresponsive and not breathing normally. This person is breathing and recovering."},
+      {t:"Sit them straight up quickly", correct:false, why:"Bringing them upright fast can trigger another faint. Keep them lying down until fully alert."}
+    ]},
+  { cat:"Act", situation:"You've started Hands-Only CPR. How hard and fast should you push?", options:[
+      {t:"Hard and fast — about twice a second, at least two inches deep, center of the chest", correct:true, why:"That's the target: 100 to 120 a minute, at least two inches deep, letting the chest come back up between pushes."},
+      {t:"Gently, so you don't hurt them", correct:false, why:"Effective CPR is forceful. Shallow, slow compressions don't move enough blood. Push hard and fast."},
+      {t:"A few quick presses, then stop to check", correct:false, why:"Don't stop to check. Keep continuous compressions until the AED is ready or EMS takes over."}
+    ]},
+  { cat:"Act", situation:"You've been doing CPR for a couple of minutes and you're getting tired. When should you stop?", options:[
+      {t:"Only when the AED is ready, EMS takes over, or the person breathes normally", correct:true, why:"Those are the reasons to stop. If someone can take over compressions, swap quickly to keep them going."},
+      {t:"After two minutes, since that's usually enough", correct:false, why:"There's no set time to stop. Interrupting compressions drops blood flow. Keep going or swap with someone."},
+      {t:"When it looks like it isn't working", correct:false, why:"You can't judge that, and stopping guarantees a worse outcome. Continue until help or the AED arrives."}
+    ]},
+  { cat:"Act", situation:"The AED tells you to apply the pads, but the person is wearing a shirt and their chest is sweaty.", options:[
+      {t:"Bare the chest and wipe it dry, then apply the pads as the diagram shows", correct:true, why:"Pads need firm contact with bare, dry skin to read the rhythm and deliver a shock. Remove clothing and dry the chest first."},
+      {t:"Apply the pads over the shirt to save time", correct:false, why:"Pads over clothing can't read the heart or deliver a shock. Bare the skin first."},
+      {t:"Skip the pads and keep doing CPR", correct:false, why:"The AED is the tool that can restart the rhythm. Take the moment to place the pads correctly."}
+    ]},
+  { cat:"Act", situation:"The AED announces it's analyzing the heart rhythm.", options:[
+      {t:"Stop CPR and make sure no one is touching the person", correct:true, why:"Any movement or contact can throw off the reading. Everyone stays clear while it analyzes."},
+      {t:"Keep doing compressions so blood keeps flowing", correct:false, why:"Compressions during analysis interfere with the reading and can cause a wrong decision. Pause and stay clear."},
+      {t:"Touch their wrist to check for a pulse", correct:false, why:"Don't touch the person at all during analysis, and a pulse check isn't needed. Stay clear."}
+    ]},
+  { cat:"Call", situation:"A person collapses in cardiac arrest and you are completely alone — no one else around.", options:[
+      {t:"Call 911, put the phone on speaker, and start CPR", correct:true, why:"For an adult, call first so EMS is coming, then begin compressions. Speaker mode lets the dispatcher coach you while your hands work."},
+      {t:"Start CPR and call 911 after a few minutes", correct:false, why:"Activate EMS first so help is on the way, then start CPR without further delay. Use speaker mode."},
+      {t:"Run to find someone before doing anything", correct:false, why:"Don't leave the person. Call 911 on speaker and start compressions right where you are."}
+    ]},
+  { cat:"Protect", situation:"A seizure has ended. The person is groggy, confused, and not fully aware of where they are.", options:[
+      {t:"Keep them on their side, stay with them, and reassure them as they come around", correct:true, why:"Post-seizure confusion is normal. Recovery position protects the airway; stay and monitor until they're fully alert."},
+      {t:"Help them stand and get back to work", correct:false, why:"They're not ready to stand — they may fall or still be impaired. Keep them down and monitor."},
+      {t:"Offer food and drink to help them recover", correct:false, why:"Don't give food or fluids yet — swallowing may be impaired. Wait until they're fully alert."}
+    ]},
+  { cat:"Protect", situation:"A colleague begins seizing at their desk. A chair and a hard laptop bag are near their legs.", options:[
+      {t:"Move the objects away and put something soft under their head", correct:true, why:"Protect them from injury: clear hazards and cushion the head. Don't restrain their movements."},
+      {t:"Hold their legs still so they don't hit anything", correct:false, why:"Restraint risks injury and can't stop the seizure. Move the hazards instead of holding the person."},
+      {t:"Pull them up into the chair", correct:false, why:"Leave them on the floor where they can't fall. Clear the space and protect the head."}
+    ]},
+  { cat:"Call", situation:"A coworker with a known epilepsy diagnosis has a seizure lasting about two minutes, then recovers normally with no injury.", options:[
+      {t:"Stay and monitor — 911 isn't automatically required for a known disorder that's brief and recovers", correct:true, why:"For a known seizure disorder that's short, injury-free, and resolves, monitoring may be enough. Call if it runs over five minutes, repeats, causes injury, or they don't return to normal."},
+      {t:"Always call 911 for any seizure, no matter what", correct:false, why:"A known, brief, uncomplicated seizure doesn't always need EMS. Know the red flags instead."},
+      {t:"Send them home alone right away", correct:false, why:"Don't rush them off alone. Stay until they're fully recovered."}
+    ]},
+  { cat:"Act", situation:"You've helped someone use their epinephrine auto-injector for anaphylaxis. What now?", options:[
+      {t:"Make sure 911 is on the way and stay with them, watching their breathing", correct:true, why:"Epinephrine buys time, it doesn't cure. EMS must respond; symptoms can return and a second dose may be needed."},
+      {t:"Send them back to work since the epinephrine fixed it", correct:false, why:"Epinephrine is temporary. They still need EMS evaluation — reactions can rebound."},
+      {t:"Have them lie flat and leave to get help", correct:false, why:"Don't leave them alone. Stay, monitor breathing, and keep EMS coming."}
+    ]},
+  { cat:"Call", situation:"You've reached 911 and given your location and the emergency. The dispatcher keeps asking questions.", options:[
+      {t:"Stay on the line and follow their instructions", correct:true, why:"Dispatchers can coach you through CPR and update responders. Don't hang up until they tell you to."},
+      {t:"Hang up so you can focus on helping", correct:false, why:"Keep the line open — the dispatcher guides you and relays to EMS. Use speaker mode if your hands are busy."},
+      {t:"Set the phone down and go get the AED yourself", correct:false, why:"Delegate the AED if you can, and keep the dispatcher on the line."}
+    ]},
+  { cat:"Differentiate", situation:"Which situation calls for immediate hands-on intervention rather than protecting and monitoring?", options:[
+      {t:"A person who is unresponsive and not breathing", correct:true, why:"Cardiac arrest demands immediate action — CPR and an AED, now. Waiting costs survival."},
+      {t:"A person having a seizure", correct:false, why:"A seizure is protect-and-monitor: clear hazards, time it, don't restrain."},
+      {t:"A person recovering after fainting", correct:false, why:"Fainting is monitor-and-support: keep them lying down until fully alert."}
+    ]},
+  { cat:"Call", situation:"A crowd has gathered around a collapsed person, but everyone is just watching and waiting.", options:[
+      {t:"Point at one specific person and give them one specific job", correct:true, why:"In a crowd, responsibility diffuses and no one acts. Naming a person and a task cuts through the freeze."},
+      {t:"Announce loudly that someone should help", correct:false, why:"A general call to 'someone' is exactly why crowds freeze. Point to a person and assign the task."},
+      {t:"Assume someone more qualified will step in", correct:false, why:"That assumption is the bystander effect. Take the lead and direct the people around you."}
+    ]},
+  { cat:"Act", situation:"You want to help someone in cardiac arrest but worry about being sued if it goes wrong.", options:[
+      {t:"Help — Good Samaritan laws protect people who assist in good faith", correct:true, why:"All 50 states protect voluntary helpers acting reasonably and in good faith. The laws exist to encourage you to act."},
+      {t:"Wait for a professional to avoid any legal risk", correct:false, why:"Waiting guarantees a worse outcome, and Good Samaritan protections exist so you can help."},
+      {t:"Only help if the person gives you permission first", correct:false, why:"Consent is implied when someone is unresponsive in an emergency. You don't need to wait for permission."}
+    ]},
+  { cat:"Act", situation:"You've confirmed a severe choking and you're going to give abdominal thrusts. Where do your hands go?", options:[
+      {t:"A fist just above the navel, below the ribs, with quick inward-and-upward thrusts", correct:true, why:"Stand behind them, wrap your arms around the waist, fist above the navel, and thrust inward and upward."},
+      {t:"Flat on the center of the chest, pressing down", correct:false, why:"That's the CPR position for an unresponsive person. A conscious choking adult gets abdominal thrusts above the navel."},
+      {t:"On the throat, to push the object out", correct:false, why:"Never press on the throat — you can worsen the blockage. Thrusts go above the navel."}
+    ]},
+  { cat:"Adapt", situation:"During anaphylaxis, the person becomes too weak and shaky to use their own epinephrine auto-injector.", options:[
+      {t:"Help them administer it, following the injector's instructions", correct:true, why:"If they can't self-administer, assist them. Most auto-injectors are simple: remove the cap and press firmly against the outer thigh."},
+      {t:"Wait until they're strong enough to do it themselves", correct:false, why:"Anaphylaxis worsens by the minute. If they can't, you help — after 911 is called."},
+      {t:"Give up on the epinephrine and just wait for EMS", correct:false, why:"Epinephrine is the bridge to EMS. Assist with it while help is on the way."}
+    ]},
+  { cat:"Recognize", situation:"A colleague mid-sentence goes stiff, drops to the floor, and their body begins jerking. They don't respond to you.", options:[
+      {t:"A seizure — protect them and let it run its course", correct:true, why:"Sudden stiffening and jerking with no response is a seizure. Clear hazards, time it, and don't restrain or put anything in the mouth."},
+      {t:"Cardiac arrest — start CPR", correct:false, why:"A seizing person has abnormal movement, not cardiac arrest. Protect them; don't compress someone who's convulsing."},
+      {t:"They're choking — give thrusts", correct:false, why:"There's no sign of an airway blockage. This is a seizure — protect and monitor."}
+    ]},
+  { cat:"Act", situation:"You freeze for a second, thinking 'I might do it wrong.' The person is in cardiac arrest.", options:[
+      {t:"Act anyway — for cardiac arrest, doing nothing is the worst option", correct:true, why:"Without CPR the outcome is almost certain. Hands-Only CPR can only help. Imperfect action beats no action."},
+      {t:"Wait until you feel sure you'll do it perfectly", correct:false, why:"There's no time to wait for certainty. Start compressions; the dispatcher and AED will guide you."},
+      {t:"Step back and let the moment pass", correct:false, why:"Hesitation costs survival. Push hard and fast in the center of the chest — you can't make it worse."}
+    ]},
+  { cat:"Call", situation:"A seizure has been going for more than five minutes with no sign of stopping.", options:[
+      {t:"Call 911 — a seizure lasting over five minutes is an emergency", correct:true, why:"Prolonged seizures need EMS. Other reasons to call: first-ever seizure, injury, water, breathing trouble, or no recovery."},
+      {t:"Keep waiting since seizures always stop on their own", correct:false, why:"Most are brief, but one over five minutes is dangerous. Call 911."},
+      {t:"Try to physically stop the seizure", correct:false, why:"You can't stop a seizure by force. Protect them and call 911 for the prolonged duration."}
+    ]},
+  { cat:"Differentiate", situation:"You come upon an emergency and want to respond in the right order. What's the sequence?", options:[
+      {t:"Recognize what's happening, Call for help, then Act", correct:true, why:"Recognize, Call, Act is the backbone of every response: confirm the situation, get EMS coming, then take the right action."},
+      {t:"Act first, then figure out what's wrong", correct:false, why:"Acting before you recognize the situation can lead to the wrong response. Read it first."},
+      {t:"Wait to see if it resolves before doing anything", correct:false, why:"Waiting wastes the minutes that matter. Recognize, Call, Act — start the chain."}
+    ]},
+  { cat:"Adapt", situation:"You're doing CPR on someone who choked and went unresponsive. You open the airway and clearly see the object.", options:[
+      {t:"Remove the visible object, then continue CPR", correct:true, why:"If you can clearly see it, take it out, then keep going. Reassess as you continue."},
+      {t:"Do a blind finger sweep to feel for it", correct:false, why:"Never sweep blindly — you can push it deeper. Only remove what you can see."},
+      {t:"Stop CPR until you're sure the airway is clear", correct:false, why:"Don't stop CPR to hunt for it. Remove only a clearly visible object and continue."}
+    ]},
+  { cat:"Recognize", situation:"A coworker suddenly clutches their chest and collapses. They don't respond, and they aren't breathing normally — just occasional gasps.",
+    options:[
+      {t:"Cardiac arrest", correct:true, why:"Unresponsive plus no normal breathing (those gasps aren't real breaths) means cardiac arrest — the most time-critical emergency."},
+      {t:"A heart attack — they'll be okay in a minute", correct:false, why:"A heart attack usually leaves the person awake and in pain. Unresponsive and not breathing normally is cardiac arrest — act now."},
+      {t:"Fainting", correct:false, why:"Someone who fainted comes around and breathes normally. No response and no normal breathing means cardiac arrest."}
+    ]},
+  { cat:"Call", situation:"Someone has collapsed, unresponsive and not breathing normally. Two coworkers are standing nearby, frozen. What's your strongest first move?",
+    options:[
+      {t:"Point to each person and give them a job: “You call 911. You get the AED.” Then start CPR.", correct:true, why:"Naming specific people breaks the bystander effect and activates the whole response chain at once."},
+      {t:"Shout “Somebody call 911!” and start CPR", correct:false, why:"“Somebody” often becomes nobody. Point to a specific person and give them a specific task."},
+      {t:"Start CPR yourself and handle everything alone", correct:false, why:"When others are present, delegate. You can't call 911, fetch the AED, and do CPR at once — direct them."}
+    ]},
+  { cat:"Recognize", situation:"At lunch, a person suddenly can't speak or cough, their hands go to their throat, and their face is reddening.",
+    options:[
+      {t:"Severe choking — prepare to give abdominal thrusts", correct:true, why:"Can't speak or cough = a severe airway blockage. Hands to the throat is the universal sign. Act."},
+      {t:"Offer them a glass of water to wash it down", correct:false, why:"Never give fluids — they can't swallow, and liquid can enter the lungs. This is one of the most dangerous instincts."},
+      {t:"Tell them to relax and keep coughing", correct:false, why:"If they can't make a sound, they can't cough effectively. Encouraging coughing only helps a mild, noisy obstruction."}
+    ]},
+  { cat:"Adapt", situation:"You've been giving abdominal thrusts to a choking person. Suddenly they go limp and unresponsive.",
+    options:[
+      {t:"Lower them to the floor, make sure 911 is called, and begin CPR", correct:true, why:"The situation changed — so your response changes. Thrusts are for a conscious person; an unresponsive one needs CPR."},
+      {t:"Keep doing abdominal thrusts", correct:false, why:"Thrusts are for a conscious, upright person. Once they're unresponsive, switch to CPR."},
+      {t:"Sit them up so they can breathe", correct:false, why:"They can't breathe on their own now. Lower them, get 911 going, and start compressions."}
+    ]},
+  { cat:"Protect", situation:"A colleague is having a seizure on the floor. Someone grabs a pen to put between their teeth “so they don't swallow their tongue.”",
+    options:[
+      {t:"Stop them — nothing goes in the mouth", correct:true, why:"A person can't swallow their tongue. Objects break teeth, block the airway, and injure the responder. Speak up."},
+      {t:"Help them find something softer, like a wallet", correct:false, why:"Nothing goes in the mouth — soft or hard. It all creates the same risks."},
+      {t:"Let them — better safe than sorry", correct:false, why:"It's the opposite of safe. Stopping the harmful “help” is your job here."}
+    ]},
+  { cat:"Protect", situation:"During the same seizure, another coworker starts pressing down on the person's shoulders to hold them still.",
+    options:[
+      {t:"Redirect them: “Don't hold them down — help me move these chairs.”", correct:true, why:"Restraint can't stop a seizure and risks injury. Give the helper a useful job: clear the space instead."},
+      {t:"Help hold the person down — two is safer than one", correct:false, why:"Force can't stop a seizure and can cause muscle or joint injury. Protect the space, not the person's movements."},
+      {t:"Ignore it and focus on timing the seizure", correct:false, why:"Timing matters, but so does stopping the harm happening right now. Redirect the restraint first."}
+    ]},
+  { cat:"Protect", situation:"The area around the seizing person is clear and they're still convulsing. What should you be doing?",
+    options:[
+      {t:"Time how long it lasts and cushion their head", correct:true, why:"Protect and monitor: note the time, pad the head with something soft, and let the seizure run its course."},
+      {t:"Try to wake them by talking loudly and shaking them", correct:false, why:"They can't process speech mid-seizure, and shaking helps nothing. Protect and time it."},
+      {t:"Hold their arms so they stop shaking", correct:false, why:"Restraint risks injury and can't stop the seizure. Keep the area safe and wait."}
+    ]},
+  { cat:"Call", situation:"A seizure stops after about three minutes. A coworker says it's the first time they've ever seen this person have one.",
+    options:[
+      {t:"Roll them onto their side and call 911 — a first seizure always warrants it", correct:true, why:"A first known seizure needs medical evaluation regardless of length. Recovery position protects the airway."},
+      {t:"No need for 911 — it stopped on its own", correct:false, why:"A first-ever seizure always warrants 911. The cause needs to be found, even though it ended."},
+      {t:"Sit them up and offer water", correct:false, why:"Don't move them upright or give fluids yet — swallowing may be impaired and they may not have muscle control."}
+    ]},
+  { cat:"Act", situation:"A coworker with a known bee allergy was stung ten minutes ago. Hives are spreading and they say their throat “feels funny.” Their epinephrine auto-injector is in their desk.",
+    options:[
+      {t:"Call 911 first, then help them use the epinephrine", correct:true, why:"Anaphylaxis can escalate in minutes. Epinephrine buys time; it doesn't replace EMS, so 911 comes first."},
+      {t:"Get the epinephrine first, and call 911 only if it doesn't work", correct:false, why:"Dangerous reversal. Epinephrine is a bridge, not a cure — EMS must be on the way regardless."},
+      {t:"Give an antihistamine and watch how it goes", correct:false, why:"Too slow once the throat is involved. Call 911 and help with epinephrine now."}
+    ]},
+  { cat:"Act", situation:"You're doing CPR and the AED has been applied. It announces: “No shock advised. Begin CPR.”",
+    options:[
+      {t:"Resume CPR right away", correct:true, why:"“No shock advised” doesn't mean they're fine — it means the rhythm isn't shockable now. Keep compressions going; it re-checks in two minutes."},
+      {t:"Stop and wait to see if they recover", correct:false, why:"Pausing stops blood flow to the brain. Follow the machine: begin CPR."},
+      {t:"Remove the pads since no shock is needed", correct:false, why:"Leave the pads on — the AED re-analyzes every two minutes and may advise a shock next time."}
+    ]},
+  { cat:"Act", situation:"Someone hands you an AED. You've never used one before.",
+    options:[
+      {t:"Turn it on and follow the voice prompts", correct:true, why:"AEDs are built for anyone. Power it on and it talks you through every step — no training required."},
+      {t:"Wait for someone who's certified", correct:false, why:"Waiting costs survival. The machine guides you; you're qualified to use it."},
+      {t:"Skip it and just keep doing CPR", correct:false, why:"CPR alone usually can't restart the heart. The AED is the tool that can — use it."}
+    ]},
+  { cat:"Differentiate", situation:"Which of these calls for “protect and monitor” rather than hands-on physical intervention?",
+    options:[
+      {t:"A person having a seizure", correct:true, why:"A seizure is protect-and-monitor: clear hazards, time it, don't restrain. The body is doing something you can't force to stop."},
+      {t:"A person in cardiac arrest", correct:false, why:"Cardiac arrest is immediate intervention — CPR and an AED, now."},
+      {t:"A person severely choking", correct:false, why:"Severe choking is immediate intervention — abdominal thrusts."}
+    ]},
+  { cat:"Act", situation:"Someone is in cardiac arrest and you are not CPR-certified. What should you do?",
+    options:[
+      {t:"Start Hands-Only CPR — push hard and fast in the center of the chest", correct:true, why:"Hands-Only CPR is recommended specifically for untrained bystanders. You can't make it worse by trying."},
+      {t:"Wait for a trained professional to arrive", correct:false, why:"Doing nothing guarantees a worse outcome. Hands-Only CPR is exactly what an untrained bystander should do."},
+      {t:"Only help if there's an AED nearby", correct:false, why:"Start compressions regardless. The AED is added when it arrives — it doesn't gate whether you begin."}
+    ]},
+  { cat:"Call", situation:"You witness a collapse and you're activating 911. What does the dispatcher need first?",
+    options:[
+      {t:"Your location — the building, floor, and room", correct:true, why:"Location first. If the call drops, help can still be sent. Everything else is useless if EMS can't find you."},
+      {t:"Your name and job title", correct:false, why:"They don't need who you are. Lead with where you are, then what's happening."},
+      {t:"A detailed medical history of the person", correct:false, why:"You won't have it, and it's not the priority. Give location, then the nature of the emergency."}
+    ]}
+];
+
+// ---- state ----
+let order=[], idx=0, score=0, streak=0, answered=false, missed=[];
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+function begin(){
+  order=shuffle(QUESTIONS.map((_,i)=>i)).slice(0,14)
+  idx=0; score=0; streak=0; missed=[];
+  $("start").classList.add("hidden");
+  $("results").classList.add("hidden");
+  $("quiz").classList.remove("hidden");
+  render();
+}
+function render(){
+  answered=false;
+  const q=QUESTIONS[order[idx]];
+  $("counter").textContent="Situation "+(idx+1)+" of "+order.length;
+  $("catTag").textContent=q.cat;
+  $("barFill").style.width=((idx)/order.length*100)+"%";
+  $("situation").textContent=q.situation;
+  $("streak").textContent=streak>=2?("🔥 "+streak+" in a row"):"";
+  const opts=shuffle(q.options);
+  const box=$("choices"); box.innerHTML="";
+  opts.forEach(o=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.innerHTML='<span class="mark" aria-hidden="true"></span><span>'+o.t+'</span>';
+    b.onclick=()=>choose(b,o,q);
+    box.appendChild(b);
+  });
+  const fb=$("feedback"); fb.className="feedback"; $("verdict").textContent=""; $("why").textContent="";
+  $("nextBtn").classList.add("hidden");
+}
+function choose(btn,opt,q){
+  if(answered) return;
+  answered=true;
+  const buttons=[...document.querySelectorAll(".choice")];
+  buttons.forEach(b=>{b.disabled=true;});
+  const correctText = q.options.find(o=>o.correct).t;
+  buttons.forEach(b=>{
+    const label=b.querySelector("span:last-child").textContent;
+    if(label===correctText){ b.classList.add("correct"); b.querySelector(".mark").textContent="✓"; }
+  });
+  const fb=$("feedback"), verdict=$("verdict"), why=$("why");
+  if(opt.correct){
+    score++; streak++;
+    btn.querySelector(".mark").textContent="✓";
+    fb.className="feedback show ok"; verdict.textContent="Correct";
+  }else{
+    streak=0;
+    btn.classList.add("wrong"); btn.querySelector(".mark").textContent="✗";
+    fb.className="feedback show no"; verdict.textContent="Not quite";
+    missed.push({situation:q.situation, correct:correctText, why:q.options.find(o=>o.correct).why});
+  }
+  why.textContent=opt.why;
+  const nb=$("nextBtn"); nb.textContent = (idx===order.length-1)?"See results":"Next";
+  nb.classList.remove("hidden"); nb.focus();
+}
+function next(){
+  if(idx===order.length-1){ finish(); return; }
+  idx++; render();
+  $("quiz").scrollIntoView({behavior:"smooth", block:"start"});
+}
+function finish(){
+  $("quiz").classList.add("hidden");
+  $("results").classList.remove("hidden");
+  const pct=Math.round(score/order.length*100);
+  $("scoreBig").textContent=score+" / "+order.length;
+  let msg;
+  if(pct===100) msg="Every call, right. That reflex is exactly what you want when seconds count.";
+  else if(pct>=80) msg="Strong. The response chain is becoming automatic — a couple more rounds and it's second nature.";
+  else if(pct>=60) msg="Solid start. Notice which situations tripped you up, then run it again — repetition is the point.";
+  else msg="This is what practice is for. Review the misses below, then take another round. Nobody gets this from one pass.";
+  $("resultMsg").textContent=msg;
+  const rv=$("review");
+  if(missed.length){
+    rv.innerHTML='<h3>Worth another look</h3>'+missed.map(m=>
+      '<div class="review-item"><b>'+m.situation+'</b><br>Best response: '+m.correct+'<br><span style="color:#5b6b78">'+m.why+'</span></div>'
+    ).join("");
+  }else{ rv.innerHTML=""; }
+}
+$("startBtn").onclick=begin;
+$("nextBtn").onclick=next;
+$("againBtn").onclick=begin;
+$("restartBtn").onclick=()=>{ $("results").classList.add("hidden"); $("start").classList.remove("hidden"); };
+</script>
+</body>
+</html>
